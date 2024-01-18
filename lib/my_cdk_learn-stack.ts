@@ -1,16 +1,24 @@
 import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { aws_lambda as lambda, aws_iam as iam } from 'aws-cdk-lib';
+
+
 
 export class MyCdkLearnStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+  
+    const fn = new lambda.Function(this, 'MyFuncFromCDK', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      code: lambda.Code.fromInline('exports.handler = function(event, ctx, cb) { return cb(null, "hi"); }'),
+      handler: 'index.handler',
+    })
 
-    // The code that defines your stack goes here
+    const fnUrl = fn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE,
+    });
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'MyCdkLearnQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    new cdk.CfnOutput(this, 'TheUrl', {
+      value: fnUrl.url,
+    });
   }
 }
